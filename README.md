@@ -1,8 +1,4 @@
 SmartShift Frontend
-Readme File
-
-Project Name:
-SmartShift Frontend
 
 Overview:
 SmartShift Frontend is a React-based web application that provides the user interface for the SmartShift roster management system. It enables managers to create and manage employee shifts, while employees can view their assigned schedules through a web interface.
