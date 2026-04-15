@@ -1,14 +1,18 @@
 import { useState } from "react";
 import { changePassword } from "../services/authService";
 
+// Simple form for users to update their password on first login or anytime.
 function ChangePasswordPage({ user, onPasswordChanged }) {
+    // keep form fields in state so inputs are controlled
     const [formData, setFormData] = useState({
         newPassword: "",
         confirmPassword: "",
     });
 
+    // message holds simple success/error feedback shown above the form
     const [message, setMessage] = useState(null);
 
+    // generic handler to keep state in sync with inputs (name -> key mapping)
     const handleChange = (e) => {
         setFormData({
             ...formData,
@@ -16,6 +20,7 @@ function ChangePasswordPage({ user, onPasswordChanged }) {
         });
     };
 
+    // Basic password validation: required, length limits, and match check.
     const validatePassword = () => {
         const password = formData.newPassword;
 
@@ -38,6 +43,7 @@ function ChangePasswordPage({ user, onPasswordChanged }) {
         return null;
   };
 
+    // Submit handler: validate, call API, persist a small flag in localStorage, and notify parent.
     const handleSubmit = async (e) => {
         e.preventDefault();
 
@@ -58,6 +64,7 @@ function ChangePasswordPage({ user, onPasswordChanged }) {
 
             const updatedUser = { ...user, firstLogin: false };
 
+            // store updated user locally so app knows firstLogin is cleared
             localStorage.setItem("user", JSON.stringify(updatedUser));
 
             setMessage({
@@ -65,7 +72,7 @@ function ChangePasswordPage({ user, onPasswordChanged }) {
                 text: "Password updated successfully",
             });
 
-            // small delay before redirect
+            // small delay before calling parent — gives user a moment to see the success message
             setTimeout(() => {
                 onPasswordChanged(updatedUser);
             }, 1000);

@@ -1,14 +1,18 @@
 import { useState } from "react";
 import { loginUser } from "../services/authService";
 
+// simple login form. If user is flagged for firstLogin, parent will trigger password change flow.
 function LoginPage({ onLogin }) {
+    // controlled inputs for username/password
     const [formData, setFormData] = useState({
         username: "",
         password: "",
     });
 
+    // message used for quick error display
     const [message, setMessage] = useState(null);
 
+    // keep formData in sync with inputs (name -> state key)
     const handleChange = (e) => {
         setFormData({
             ...formData,
@@ -16,18 +20,24 @@ function LoginPage({ onLogin }) {
         });
     };
 
+    // call API, stash user in localStorage, and notify parent via onLogin
     const handleSubmit = async (e) => {
         e.preventDefault();
 
         try {
             const user = await loginUser(formData);
+
+            // save user locally so other parts of the app can read it
             localStorage.setItem("user", JSON.stringify(user));
+
+            // if this is the first login, parent will route to password change flow
             if (user.firstLogin) {
                 onLogin({ ...user, requirePasswordChange: true });
             } else {
                 onLogin(user);
             }
         } catch (error) {
+            // show an inline error message (not modal)
             setMessage({
                 type: "error",
                 text: error.response?.data?.message || "Login failed",
@@ -40,7 +50,7 @@ function LoginPage({ onLogin }) {
             <div className="card" style={{ maxWidth: "400px", margin: "60px auto" }}>
                 <h2>Login</h2>
 
-                {/* Message Alert */}
+                {/* small inline alert area for errors */}
                 {message && <div className={`alert ${message.type}`}>{message.text}</div>}
 
                 <form onSubmit={handleSubmit}>

@@ -2,16 +2,21 @@ import { useState, useEffect } from "react";
 import { createUserFromEmployee } from "../services/authService";
 import { getEmployees } from "../services/employeeService";
 
+// pick an employee without a login and create a temporary user for them
 function AssignUserForm({ onSuccess }) {
+    // list of employees from the API
     const [employees, setEmployees] = useState([]);
+    // formData holds the selected employee email and the credentials to create
     const [formData, setFormData] = useState({
         employeeEmail: "",
         username: "",
         password: "",
     });
 
+    // message used to show simple success/error feedback to the user
     const [message, setMessage] = useState(null);
 
+    // on mount: load employees
     useEffect(() => {
         fetchEmployees();
     }, []);
@@ -21,7 +26,8 @@ function AssignUserForm({ onSuccess }) {
         setEmployees(data);
     };
 
-    //When selecting employee
+    // When user selects an employee from the dropdown, auto-fill username/password
+    // Username defaults to the employee email; temporary password defaults to DOB without dashes
     const handleEmployeeChange = (e) => {
         const employeeEmail = e.target.value;
         const emp = employees.find((employee) => employee.email === employeeEmail);
@@ -32,9 +38,11 @@ function AssignUserForm({ onSuccess }) {
             password: emp?.dateOfBirth ? emp.dateOfBirth.replaceAll("-", "") : "",
         });
 
+        // clear any previous message when changing selection
         setMessage(null);
     };
 
+    // Generic input handler— keeps formData keys in sync with input `name` attributes
     const handleChange = (e) => {
         setFormData({
             ...formData,
@@ -42,6 +50,7 @@ function AssignUserForm({ onSuccess }) {
         });
     };
 
+    // Submit- call API to create user, show a message, reset form, refresh list
     const handleSubmit = async (e) => {
         e.preventDefault();
 
@@ -53,6 +62,7 @@ function AssignUserForm({ onSuccess }) {
                 text: "User account created successfully",
             });
 
+            // reset inputs after success
             setFormData({
                 employeeEmail: "",
                 username: "",
@@ -60,6 +70,7 @@ function AssignUserForm({ onSuccess }) {
             });
 
             if (onSuccess) onSuccess();
+            // reload employees to remove those who now have a login
             fetchEmployees();
         } catch (error) {
             setMessage({
@@ -77,6 +88,7 @@ function AssignUserForm({ onSuccess }) {
 
             <form onSubmit={handleSubmit}>
                 <div className="form-row">
+                    {/* show only employees who don't have logins yet */}
                     <select name="employeeEmail" value={formData.employeeEmail} onChange={handleEmployeeChange}>
                         <option value="">Select Employee</option>
 
@@ -91,11 +103,13 @@ function AssignUserForm({ onSuccess }) {
                 </div>
 
                 <div className="form-row">
+                    {/* editable username and temp password — user can tweak before submitting */}
                     <input name="username" placeholder="Username" value={formData.username} onChange={handleChange} />
                     <input name="password" placeholder="Temporary Password" value={formData.password} onChange={handleChange} />
                 </div>
 
                 <div className="form-row">
+                    {/* submit to create the login */}
                     <button type="submit">Assign Login</button>
                 </div>
             </form>

@@ -2,9 +2,11 @@ import { useEffect, useMemo, useState } from "react";
 import { getWeeklyShifts, getPublishedWeeklyShifts } from "../services/shiftService";
 import { getEmployees } from "../services/employeeService";
 
+// shows a week calendar for employees with their assigned shifts 
 function WeeklyRosterPage({ user }) {
     const daysOfWeek = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 
+    // Helper that returns current week's Monday-Sunday as YYYY-MM-DD
     const getCurrentWeekRange = () => {
         const today = new Date();
         const day = today.getDay(); // Sun=0, Mon=1, ...
@@ -24,11 +26,13 @@ function WeeklyRosterPage({ user }) {
 
     const initialWeek = getCurrentWeekRange();
 
+    // week range controlled by two date inputs
     const [start, setStart] = useState(initialWeek.start);
     const [end, setEnd] = useState(initialWeek.end);
     const [rosterData, setRosterData] = useState([]);
     const [message, setMessage] = useState(null);
 
+    // tiny helpers for formatting
     const formatTime = (time) => {
         if (!time) return "";
         return time.slice(0, 5);
@@ -41,6 +45,7 @@ function WeeklyRosterPage({ user }) {
         return map[dayIndex];
     };
 
+    // Convert raw shifts + employees into a table-friendly array of rows.
     const transformRosterData = (shifts, employees) => {
         const employeeMap = {};
 
@@ -81,6 +86,7 @@ function WeeklyRosterPage({ user }) {
             const dayKey = formatDateKey(shift.shiftDate);
             const shiftText = `${formatTime(shift.startTime)} - ${formatTime(shift.endTime)}`;
 
+            // if there's already a shift, append with comma — simple handling for overlaps
             if (employeeMap[employeeName][dayKey] === "Off") {
                 employeeMap[employeeName][dayKey] = shiftText;
             } else {
@@ -91,14 +97,17 @@ function WeeklyRosterPage({ user }) {
         return Object.values(employeeMap).sort((a, b) => a.employeeName.localeCompare(b.employeeName));
     };
 
+    // initial load
     useEffect(() => {
         handleSearch();
     }, []);
 
     const filteredRosterData = useMemo(() => {
+        // right now it's a passthrough, but keep it memoized for future filters
         return rosterData;
     }, [rosterData]);
 
+    // labels for each day in the week header (e.g. "Apr 15")
     const weekDateLabels = useMemo(() => {
         if (!start) return new Array(7).fill("");
         const startDate = new Date(start);
@@ -116,6 +125,7 @@ function WeeklyRosterPage({ user }) {
         return <td className={className}>{value}</td>;
     };
 
+    // Fetch roster: if the user is an employee, only request published shifts.
     const handleSearch = async (s = start, e = end) => {
         if (!s || !e) {
             setMessage({ type: "error", text: "Please select both start and end dates" });
@@ -136,6 +146,7 @@ function WeeklyRosterPage({ user }) {
         }
     };
 
+    // change week by offset (±1 week)
     const changeWeek = (weekOffset) => {
         const sDate = new Date(start);
         const eDate = new Date(end);
@@ -156,6 +167,7 @@ function WeeklyRosterPage({ user }) {
 
             <div className="card">
                 <div className="form-row">
+                    {/* pick start/end or navigate week */}
                     <input type="date" value={start} onChange={(e) => setStart(e.target.value)} />
                     <input type="date" value={end} onChange={(e) => setEnd(e.target.value)} />
                     <div style={{ display: "flex", gap: "8px", alignItems: "center" }}>

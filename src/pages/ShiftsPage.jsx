@@ -4,7 +4,9 @@ import { getWeeklyShifts, createShift, updateShift, deleteShift, publishWeek } f
 import ShiftForm from "../components/ShiftForm";
 import ShiftList from "../components/ShiftList";
 
+//week-based shift management. Pick a week, add/edit/delete shifts, and publish.
 function ShiftsPage({ user }) {
+    // Helper to get current week's Monday-Sunday range as YYYY-MM-DD
     const getCurrentWeekRange = () => {
         const today = new Date();
         const day = today.getDay();
@@ -24,14 +26,17 @@ function ShiftsPage({ user }) {
 
     const initialWeek = getCurrentWeekRange();
 
+    // start/end control which week is shown
     const [start, setStart] = useState(initialWeek.start);
     const [end, setEnd] = useState(initialWeek.end);
 
+    // data and UI state
     const [shifts, setShifts] = useState([]);
     const [employees, setEmployees] = useState([]);
     const [editingShift, setEditingShift] = useState(null);
     const [message, setMessage] = useState(null);
 
+    // load shifts and employees for the current week
     const loadData = async () => {
         try {
             const [shiftData, employeeData] = await Promise.all([getWeeklyShifts(start, end), getEmployees()]);
@@ -46,10 +51,12 @@ function ShiftsPage({ user }) {
         }
     };
 
+    // on mount: fetch the current week
     useEffect(() => {
         loadData();
     }, []);
 
+    // Create or update shift depending on editing state
     const handleSaveShift = async (payload) => {
         try {
             if (editingShift) {
@@ -76,11 +83,13 @@ function ShiftsPage({ user }) {
         }
     };
 
+    // start editing a shift — populate the form via `editingShift`
     const handleEditShift = (shift) => {
         setEditingShift(shift);
         setMessage(null);
     };
 
+    // delete shift and refresh
     const handleDeleteShift = async (id) => {
         try {
             await deleteShift(id);
@@ -103,11 +112,13 @@ function ShiftsPage({ user }) {
         }
     };
 
+    // cancel editing
     const handleCancelEdit = () => {
         setEditingShift(null);
         setMessage(null);
     };
 
+    // move the selected week forward or backward by 1 week
     const moveWeek = (direction) => {
         const startDate = new Date(start);
         const endDate = new Date(end);
@@ -119,6 +130,7 @@ function ShiftsPage({ user }) {
         setEnd(endDate.toISOString().split("T")[0]);
     };
 
+    // publish the week (server sends notifications)
     const handlePublishWeek = async () => {
         try {
             await publishWeek(start, end);
@@ -135,6 +147,7 @@ function ShiftsPage({ user }) {
         }
     };
 
+    // quick helper to decide if all shifts are published
     const allPublished = shifts.length > 0 && shifts.every(shift => shift.published === true);
 
     return (
@@ -147,10 +160,12 @@ function ShiftsPage({ user }) {
                 <h3>Week Filter</h3>
 
                 <div className="form-row">
+                    {/* navigate weeks */}
                     <button type="button" onClick={() => moveWeek(-1)}>
                         Previous Week
                     </button>
 
+                    {/* pick start/end dates manually */}
                     <input type="date" value={start} onChange={(e) => setStart(e.target.value)} />
 
                     <input type="date" value={end} onChange={(e) => setEnd(e.target.value)} />
@@ -163,6 +178,7 @@ function ShiftsPage({ user }) {
                         Next Week
                     </button>
 
+                    {/* publish button shows different text if already published */}
                     <button type="button" onClick={handlePublishWeek}>
                         {allPublished ? "Already Published" : "Publish Week"}
                     </button>

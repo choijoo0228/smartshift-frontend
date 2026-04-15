@@ -1,6 +1,9 @@
 import { useState } from "react";
 
+// Small controlled form component used to collect employee details
+// onAddEmployee function called with the form data when the form is submitted
 function EmployeeForm({ onAddEmployee }) {
+    // formData holds all input values for the form
     const [formData, setFormData] = useState({
         firstName: "",
         lastName: "",
@@ -10,6 +13,7 @@ function EmployeeForm({ onAddEmployee }) {
         role: "EMPLOYEE",
     });
 
+    // Generic change handler: updates the single field that changed while preserving other values
     const handleChange = (e) => {
         setFormData({
             ...formData,
@@ -17,9 +21,11 @@ function EmployeeForm({ onAddEmployee }) {
         });
     };
 
+    // Submit handler: prevents default form submit, forwards the data to parent, then resets the form.
     const handleSubmit = (e) => {
         e.preventDefault();
         onAddEmployee(formData);
+        // reset form to initial state after successful submit
         setFormData({
             firstName: "",
             lastName: "",
@@ -30,6 +36,7 @@ function EmployeeForm({ onAddEmployee }) {
         });
     };
 
+    // the jsx below renders inputs bound to formData
     return (
         <form onSubmit={handleSubmit}>
             <div className="form-row">
